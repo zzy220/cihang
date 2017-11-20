@@ -22,7 +22,7 @@ class DownLoader(threading.Thread):
     def begin_download(self, theurl, localfile):
         self.localfile = localfile
         self.url_to_down= theurl
-        threading.Thread.start()
+        self.start()
         
     def finish_download(self):
         threading.Thread.join(self, None);
