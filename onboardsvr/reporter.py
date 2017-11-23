@@ -56,12 +56,27 @@ data format
 }
 '''
 import json
+import urllib.request 
+
+from Crypto.Cipher import AES
 
 class Reporter(object):
     '''
     report the state of this onboard server and 
     states of various devices
     '''
+    
+    def testAES(self):
+        # Encryption
+        key = '4590auf34567hilm2390noqrst890uyz'.encode()
+        mode = AES.MODE_CBC
+        encryptor = AES.new(key, mode)
+        cipher_text = encryptor.encrypt("A really secret message. Not for prying eyes.".encode())
+        # Decryption
+        decryptor = AES.new(key, mode)
+        plain_text = decryptor.decrypt(cipher_text)
+
+    
 
     def do_report(self):
         self.apList.append({"ap1":0,} )
@@ -76,6 +91,13 @@ class Reporter(object):
         self.camList.append({"cam2":3})
 
         print(json.dumps(self.rep))
+        req = urllib.request.Request("https://server.chrail.cn/equipment!request.action")
+        req.add_header('Content-Type', 'application/octet-stream')
+        req.data = json.dumps(self.rep).encode();
+        resp = urllib.request.urlopen(req)
+        
+        if resp.status == 200:
+            pass
         
         pass
     
