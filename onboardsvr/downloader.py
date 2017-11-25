@@ -17,6 +17,7 @@ class DownLoader(threading.Thread):
         '''
         Constructor
         '''
+        super(DownLoader, self).__init__()         
         self.localfile = r'd:\download.txt'
         
     def begin_download(self, theurl, localfile):
@@ -29,8 +30,20 @@ class DownLoader(threading.Thread):
         
     def run(self):
         path = self.localfile #
-        r = urllib.request.urlopen("www.sina.com")
-        if r.status_code == 200:
+        r = urllib.request.urlopen(self.url_to_down)
+        if r.status == 200:
             with open(path, 'wb') as f:
                 for chunk in r:
                     f.write(chunk)
+
+# some UT test code
+if __name__=="__main__":
+    try :
+        
+        dlr = DownLoader()
+        dlr.begin_download("http://www.sohu.com", r'd:\download.txt')
+        dlr.finish_download()
+    except :
+        print('exce')
+    
+    print('done')

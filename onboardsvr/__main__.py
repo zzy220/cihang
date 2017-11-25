@@ -26,7 +26,7 @@ if __name__ == '__main__':
 #     r = reporter.Reporter(10)
 #     r.testAES()
     key = '4590auf34567hilm2390noqrst890uyz'.encode()
-    mode = AES.MODE_CBC
+    mode = AES.MODE_ECB
     encryptor = AES.new(key, mode)
     BS = 16
     pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS) 

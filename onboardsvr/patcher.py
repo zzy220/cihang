@@ -56,4 +56,13 @@ class Updater():
 
     def check_new_files(self):
         pass
-    
+
+
+# some UT code
+if __name__=="__main__":
+    fl = r'd:\list.txt'
+    with open(fl, 'rt') as csvfile:
+        reader = csv.reader(csvfile, delimiter='\t')
+        for row in reader:
+            print (row)
+
