@@ -5,46 +5,110 @@ Created on Nov 18, 2017
 '''
 from platform import system as system_name # Returns the system/OS name
 from os import system as system_call       # Execute a shell command
-
+import os
+import logging
 import threading
+import json
 
 class DevMon(object):
     '''
     Monitor the status of devices
+    this monitor reads device list from a json file in following format:
+    {
+        "rfidList": [ { "name": "rfid1", "ip": "ip_addr1"  },  { "name": "rfid2", "ip": "ip_addr2"  }  ],
+        "camList": [  { "name": "cam1", "ip": "ip_addr1"  },  { "name": "cam2", "ip": "ip_addr2"  }  ],
+        "apList": [   { "name": "ap1", "ip": "ip_addr1"  },  { "name": "ap2", "ip": "ip_addr2"  }  ],
+        "brList": [   { "name": "br1", "ip": "ip_addr1"  },  { "name": "br2", "ip": "ip_addr2"  }  ]
+    }
     '''
 
-    def __init__(self):
+    def __init__(self, workdir, devlistfile):
         '''
         Constructor
         '''
-        self.hostlist = []
+        self.devlist = {}
+        self.devlist_file = os.path.join(workdir, devlistfile)
+        try:
+            with open(self.devlist_file) as fp:
+                self.devlist = json.load(fp)
+        except Exception as e:
+            logging.error('device monitor, load device list failed:' + str(e))
+            
         self.results = {}
         self.lock = threading.Lock()
         return
-    
-    def adddev(self, devip ):
-        self.hostlist.insert(0, devip)
         
-    def removedev(self, devip):
-        self.hostlist.remove(devip)
-    
-    def getdevlist(self):
-        return self.hostlist
-    
-    def getDevStatus(self):
+    def get_apStatus(self):
+        r = []
+        if "apList" in self.devlist:
+            r = self._make_status_result(self.devlist["apList"])
+        return r
+        
+    def get_brStatus(self):
+        r = []
+        if "brList" in self.devlist:
+            r = self._make_status_result(self.devlist["brList"])
+        return r
+        
+    def get_rfidStatus(self):
+        r = []
+        if "rfidList" in self.devlist:
+            r = self._make_status_result(self.devlist["rfidList"])
+        return r
+        
+    def get_camStatus(self):
+        r = []
+        if "camList" in self.devlist:
+            r = self._make_status_result(self.devlist["camList"])
+        return r
+        
+    def _make_status_result(self, spec_devlist):
+        '''
+        make the status result for specified device list
+        spec_devlist :  [ { "name": "devName", "ip": "ip_addr1"  }, ... ]
+        return list [ {"dev1": 0}, ... ]
+        '''
+        devstatus = []
+        for i in spec_devlist:
+            # we have result for the ip
+            if i['ip'] in self.results:
+                stat = 0;
+                if self.results[i['ip']]:
+                    stat = 1 
+                devstatus.append( {i['name']:stat} )
+        return devstatus
+       
+    def updateDevStatus(self):
         # clear the status
         self.results.clear()
         
-        ths = []
+        iplist = []
+        if "rfidList" in self.devlist:
+            for i in self.devlist["rfidList"]:
+                iplist.append(i['ip'])
+                
+        if "camList" in self.devlist:
+            for i in self.devlist["camList"]:
+                iplist.append(i['ip'])
+                
+        if "apList" in self.devlist:
+            for i in self.devlist["apList"]:
+                iplist.append(i['ip'])
+                
+        if "brList" in self.devlist:
+            for i in self.devlist["brList"]:
+                iplist.append(i['ip'])
+            
+        threads = []
         # ping all devices in different threads
-        for devip in self.hostlist:
+        for devip in iplist:
             t = threading.Thread(target=self.get_alive_status, args = (devip,))
             t.daemon = True
             t.start()
-            ths.append(t)
+            threads.append(t)
             
         # wait all threads to be done
-        for t in ths:
+        for t in threads:
             t.join(None)
         
         # return the ping results
@@ -52,7 +116,12 @@ class DevMon(object):
     
     # called by each thread
     def get_alive_status(self, devip):
-        alive = self.ping(devip)
+        alive = False
+        try:
+            alive = self.ping(devip)
+        except Exception as e:
+            logging.error('ping dev failed:' + str(e))
+            
         # the results can be mod by multiple threads so, need a lock
         self.lock.acquire()
         self.results[devip]= alive
@@ -69,3 +138,14 @@ class DevMon(object):
         # Pinging
         return system_call("ping " + parameters + " " + host) == 0      
 
+#UT code
+if __name__ == '__main__':
+    dm = DevMon('D:/', 'devlist.json')
+    dm.updateDevStatus()
+    print(dm.get_apStatus())
+    print(dm.get_brStatus())
+    print(dm.get_camStatus())
+    print(dm.get_rfidStatus())
+    
+    pass
+        

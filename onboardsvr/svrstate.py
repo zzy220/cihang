@@ -7,9 +7,10 @@ import psutil
 
 def get_onboardsvr_state():
     '''
-    return some system states
+    return some system states, as a dictionary
+        其中stat0-stat3分别表示: CPU占用率,内存占用率,主磁盘占用率,辅磁盘占用率
     '''
-    # 其中stat0-stat3分别表示: CPU占用率,内存占用率,主磁盘占用率,辅磁盘占用率
+    
     state = {}
     # print partition states
     s = psutil.disk_partitions(True)

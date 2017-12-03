@@ -9,7 +9,8 @@ from onboardsvr import downloader
 
 import csv
 from Crypto.Cipher import AES
-
+import json
+import datetime
 if __name__ == '__main__':
 #     devm1 = devmon.DevMon()
 #     devm1.adddev("www.sina.com")    
@@ -25,21 +26,20 @@ if __name__ == '__main__':
     
 #     r = reporter.Reporter(10)
 #     r.testAES()
-    key = '4590auf34567hilm2390noqrst890uyz'.encode()
-    mode = AES.MODE_ECB
-    encryptor = AES.new(key, mode)
-    BS = 16
-    pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS) 
-    unpad = lambda s : s[:-ord(s[len(s)-1:])]   
-    t = pad ("A really secret message. Not for prying eyes.") 
-    cipher_text = encryptor.encrypt(t.encode())
-    # Decryption
-    decryptor = AES.new(key, mode)
-    plain_text = decryptor.decrypt(cipher_text)
+
 #     d = downloader.DownLoader()
 #     d.begin_download("https://dl.360safe.com/inst.exe", r"d:\inst.exe")
 #     d.finish_download()
-    
+    a = [  ]
+    a.append( [str(datetime.datetime.now()), 'ea'])
+    a.append( [str(datetime.datetime.now()), 'db'])
+    a.append( [str(datetime.datetime.now()), 'bc'])
+    a.append( [str(datetime.datetime.now()), 'ad'])
+    b = sorted(a, key=lambda i:i[0]);
+    print(b)
+    c = sorted(a, key=lambda i:i[1]);
+    print(c)
+    b = json.dumps(a)
     print(ret)
     
     
