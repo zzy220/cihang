@@ -6,7 +6,6 @@ Created on Nov 18, 2017
 
 import urllib.request 
 import threading
-from turtledemo.penrose import star
 
 
 class DownLoader(threading.Thread):

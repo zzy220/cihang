@@ -12,7 +12,7 @@ import logging
 class Patcher():
     '''
     download pactches and do updating...
-    The patcher is driving by a timer
+    The patcher is driving by the scheduler
     '''
 
     def __init__(self, workdir, patchroot):
@@ -23,23 +23,21 @@ class Patcher():
         self.workdir = workdir
         self.downloader = downloader.DownLoader()        
         
-    def download_patchlist(self):
-        filelist = os.path.join(self.workdir, "patches.txt")
+    def download_patchlist(self, patchlistfile):
         patchlist_url = "https://server.chrail.cn/patch/2017/list.txt"
-        self.downloader.begin_download(patchlist_url, filelist)
+        self.downloader.begin_download(patchlist_url, patchlistfile)
         self.downloader.finish_download() # finish downloading
-        if os.path.exists(filelist):
+        if os.path.exists(patchlistfile):
             return True
         return False
                 
-    def parse_patchlist(self, patchlist):       
+    def parse_patchlist(self, patchlistfile):       
         '''
         patch list is a tab separated csv file
         parse the list file and return a patch list
         ''' 
-        patchlist = os.path.join(self.workdir, "patches.txt")
         patch_list = []
-        with open(patchlist, 'rt') as csvfile:
+        with open(patchlistfile, 'rt') as csvfile:
             reader = csv.reader(csvfile, delimiter='\t')
             for row in reader:
                 print (row)
@@ -53,16 +51,7 @@ class Patcher():
                     patch_list.append(p)
         return patch_list
     
-    def mainjob(self):
-        if self.stopFlag:
-            return
-        patchlist = self.get_file_list()
-        for p in patchlist:
-            self.do_patch(p)
-            if self.stopFlag:
-                return
-
-    def calc_md5(self, filename):
+    def _calc_md5(self, filename):
         md5_returned = ''
         if os.path.exists(filename)==False:
             logging.error('calc_md5 : file does not exist:'+filename)
@@ -79,6 +68,17 @@ class Patcher():
             print('fail to calc md5')
             
         return md5_returned;    
+
+    def _run_cmd (self, cmd):
+        if len(cmd) ==0: # empty command, treat as right case
+            return True
+        r = False
+        try:
+            r = os.system(cmd) == 0 # we assume the cmd return 0 on SUCCESS
+        except Exception as e:
+            logging.error('failed to execute command0:'+ cmd)
+            return False
+        return r;
         
     def do_patch(self, p):
         # tmpfile to download the patch
@@ -89,47 +89,47 @@ class Patcher():
             self.downloader.finish_download()
         except IOError as e:
             logging.error('do_patch failed:'+e)
-            return
+            return False
+        
         # do md5 check
-        new_md5 = self.calc_md5(tmpfile)
+        new_md5 = self._calc_md5(tmpfile)
         if new_md5!=p['md5']:
             logging.error('patching failed: md5 error')
             logging.error('url='+p['url'])
             logging.error('md5='+p['md5'])
             logging.error('new md5='+new_md5)
             return False
+        
         # run pre command
-        try:
-            if len (p['cmd0']):
-                os.system(p['cmd0'])
-        except Exception as e:
+        if self._run_cmd(p['cmd0'])==False:
             logging.error('failed to execute command0:'+p['cmd0'])
             return False
-        
+                
         # apply the patch file
-        tardir = '/d/' # to to root dir
+        tardir = self.patchroot # to to root dir
         tarcmd = 'tar -C '+ tardir + '-xvf ' + tmpfile
-        try:
-            os.system(tarcmd)
-        except Exception as e:
+        if self._run_cmd(tarcmd)==False:
             logging.error('failed to execute tar command:' + tarcmd)
             return False    
         
         # run post command
-        try:
-            if len (p['cmd1']):
-                os.system(p['cmd1'])
-        except Exception as e:
+        if self._run_cmd(p['cmd1'])==False:
             logging.error('failed to execute command1:'+p['cmd1'])
             return False
+        
+        # finally, we've done
+        return True
+
 
 # some UT code
 if __name__=="__main__":
     logging.basicConfig(filename='d:/test.log',level=logging.DEBUG)
 
+    patchlist = os.path.join("d:/", "patches.txt")
+
     fl = r'd:\dinner_1080p30_2m.mp4'
     u = Patcher('d:/', 30)
-    md5 = u.calc_md5(fl)
+    md5 = u._calc_md5(fl)
     print('done')
 #     with open(fl, 'rt') as csvfile:
 #         reader = csv.reader(csvfile, delimiter='\t')
