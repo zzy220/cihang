@@ -55,7 +55,7 @@ class Reporter(object):
         
         # prepare the form data
         key = '4590auf34567hilm2390noqrst890uyz'
-        use_aes = False;
+        use_aes = True;
         json_data = json.dumps(self.report)
         if use_aes:
             json_data = aescrypto.encode(key, json_data)
@@ -81,7 +81,8 @@ class Reporter(object):
             result = bytes.decode("utf-8") 
         except Exception as e:
             logging.error('report data failed:' + str(e))
-            
+        
+        print(result)
         pass
     
     def __init__(self, interval):
