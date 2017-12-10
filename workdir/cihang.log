@@ -1,0 +1,26 @@
+INFO:root:now kick off the scheduler.. 
+ERROR:root:failed to parse patch history file:[Errno 2] No such file or directory: 'C:\\Users\\zhenyu\\workspace\\cihang\\workdir\\patch_hist.json'
+ERROR:root:failed to execute tar command:tar -C / -xvf C:\Users\zhenyu\workspace\cihang\workdir\tmp7cc1df8e7027b1243d77dd4f8f7159e7.tar.gz
+ERROR:root:failed to execute tar command:tar -C / -xvf C:\Users\zhenyu\workspace\cihang\workdir\tmpf88b3de4e2cc779d99de5ae0a887512f.tar.gz
+ERROR:root:failed to execute tar command:tar -C / -xvf C:\Users\zhenyu\workspace\cihang\workdir\tmp7cc1df8e7027b1243d77dd4f8f7159e7.tar.gz
+ERROR:root:failed to execute tar command:tar -C / -xvf C:\Users\zhenyu\workspace\cihang\workdir\tmpf88b3de4e2cc779d99de5ae0a887512f.tar.gz
+INFO:root:now kick off the scheduler.. 
+ERROR:root:failed to parse patch history file:[Errno 2] No such file or directory: '/mnt/c/Users/zhenyu/workspace/cihang/workdir/patch_hist.json'
+ERROR:root:exception in scheduler:list index out of range
+ERROR:root:exception in scheduler:list index out of range
+ERROR:root:exception in scheduler:list index out of range
+INFO:root:now kick off the scheduler.. 
+ERROR:root:exception in scheduler:list index out of range
+ERROR:root:exception in scheduler:list index out of range
+ERROR:root:exception in scheduler:list index out of range
+ERROR:root:exception in scheduler:list index out of range
+ERROR:root:exception in scheduler:list index out of range
+ERROR:root:exception in scheduler:list index out of range
+ERROR:root:exception in scheduler:list index out of range
+INFO:root:now kick off the scheduler.. 
+ERROR:root:exception in scheduler:list index out of range
+INFO:root:now kick off the scheduler.. 
+ERROR:root:exception in scheduler:list index out of range
+INFO:root:now kick off the scheduler.. 
+ERROR:root:exception in scheduler:list index out of range
+ERROR:root:exception in scheduler:list index out of range

@@ -1,6 +1,8 @@
 __all__ = [
+    'aescrypto'
     'devmon',
     'downloader',
     'reporter',
-    'updater'
+    'patcher'
+    'scheduler'
     ]

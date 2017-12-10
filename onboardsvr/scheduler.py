@@ -2,57 +2,93 @@
 Created on Dec 2, 2017
 
 @author: zhenyu
+
+this is a simple scheduler to run
+   the reporter and the patcher timely
+
 '''
+
 import threading
 import logging
+import time
+import sys, traceback
 
 from onboardsvr import downloader
 from onboardsvr import reporter
 from onboardsvr import patcher
-
-class ReportRunner(threading.Thread):
-    def __init__(self, workdir):
-        self.workdir = workdir
-        self.stopFlag = False
-    def run(self):
-        print('run once')
-        
-class PatcherRunner(threading.Thread):
-    def __init__(self, workdir):
-        self.workdir = workdir
-        self.stopFlag = False
-    def run(self):
-        print('PatcherRunner run once')
-            
-class Scheduler():
-    def __init__(self, workdir, interval):
+from builtins import str
+           
+class Scheduler(threading.Thread):
+    def __init__(self, workdir, patch_root, report_interval, patcher_interval):
         '''
         Constructor
+        workdir: work dir to put working files
+        patch_root: the root path to apply patches
+        report_interval : the interval to send device report (in seconds)
+        patcher_interval : the interval to run the patcher (in seconds)
         '''
-        self.interval = interval
+        super(Scheduler, self).__init__()
+
+        self.report_interval = report_interval
+        self.patcher_interval = patcher_interval
         self.workdir = workdir
-        # setup the report runner
-        self.report_runner = ReportRunner(workdir)
-        self.report_timer = threading.Timer(interval, self.report_runner.run) 
+        self.patch_root =patch_root
+        self.stop_flag=False; 
         
-        # setup the pathcer runner
-        self.patcher_runner = PatcherRunner(workdir)
-        self.patcher_timer  = threading.Timer(interval * 2, self.patcher_runner.run) 
-        
-    def startReporter(self):
-        self.report_timer
-        self.report_timer.start()
-        pass
+    def startup(self):
+        self.stop_flag=False;
+        #self.thread = threading.Thread(target=self._run(), args=())
+        #self.thread.start()
+        self.start()
     
-    def stopReporter(self):
-        self.report_runner.stopFlag = True # if the timer thread is doing job, we have opportunity to check this flag in the job function
-        self.report_timer.cancel(); # stop wait
-        self.report_timer.join(); # wait for the thread to exit
-        pass
+    def shutdown(self):
+        if self.isAlive()==False: # Not running
+            return
+        self.stop_flag=True;
+        self.join()
+        
+    def run(self):
+        '''
+        This is the main loop the run the scheduler
+        '''
+        _reporter = reporter.Reporter(self.workdir)
+        _patcher = patcher.Patcher(self.workdir, self.patch_root)
+    
+        try:
+            _reporter.do_report()
+            _patcher.do_patch()
+        except Exception as e: # catch all exceptions to keep this thread alive
+            traceback.print_exc()
+            logging.error('exception in scheduler:' + str(e))
+            
+        last_report_time = time.time()
+        last_patcher_time = time.time()
+        
+        while self.stop_flag == False:
+            cur_time =  time.time()
+            # is is time to send a report
+            if cur_time - last_report_time > self.report_interval:
+                try:
+                    _reporter.do_report()
+                except Exception as e: # catch all exceptions to keep this thread alive
+                    logging.error('exception in scheduler:' + str(e))
+                last_report_time = cur_time
+                
+            # is it time to do patching..
+            if cur_time - last_patcher_time > self.patcher_interval:
+                try:
+                    _patcher.do_patch()
+                except Exception as e: # catch all exceptions to keep this thread alive
+                    logging.error('exception in scheduler:' + str(e))
+                last_patcher_time = cur_time
+                
+            # sleep a while to throttle down CPU usage
+            time.sleep(1)
+        
 
 if __name__ == '__main__':
-    s = Scheduler("d:/", 1)
-    s.startReporter()
+    s = Scheduler("d:/Test", "d:/Test", 100, 100)
+    s.startup()
     input('press q to quit')
-    s.stopReporter()
+    s.shutdown()
     pass

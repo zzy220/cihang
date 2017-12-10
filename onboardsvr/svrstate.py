@@ -2,6 +2,8 @@
 Created on Nov 25, 2017
 
 @author: zhenyu
+
+This module is used to collect system state of the onboard server
 '''
 import psutil
 
@@ -13,20 +15,20 @@ def get_onboardsvr_state():
     
     state = {}
     # print partition states
-    s = psutil.disk_partitions(True)
-    print(s)
+    #s = psutil.disk_partitions()
+    #print(s)
     # cpu usage
     s = psutil.cpu_times_percent()
     state["stat0"] = 100 - s.idle; # total cpu usage
-    print(s)
+    #print(s)
     # memory usage
     s = psutil.virtual_memory()
     state["stat1"] = s.percent # this is just the usage
-    print(s)
+    #print(s)
     # disk usage
     s = psutil.disk_usage('/')
     state["stat2"] = s.percent # this is just the usage
-    print(s)
+    #print(s)
     state["stat3"] = 0;
     return state
 

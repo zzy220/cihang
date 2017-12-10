@@ -1,0 +1,6 @@
+    {
+        "rfidList": [ { "name": "rfid1", "ip": "www.sohu.com"  },  { "name": "rfid2", "ip": "www.sohu.com"  }  ],
+        "camList": [  { "name": "cam1", "ip": "www.sohu.com"  },  { "name": "cam2", "ip": "www.sohu.com"  }  ],
+        "apList": [   { "name": "ap1", "ip": "www.sohu.com"  },  { "name": "ap2", "ip": "www.sohu.com"  }  ],
+        "brList": [   { "name": "br1", "ip": "www.sohu.com"  },  { "name": "br2", "ip": "www.sohu.com"  }  ]
+    }

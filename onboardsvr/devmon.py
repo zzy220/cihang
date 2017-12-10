@@ -22,12 +22,12 @@ class DevMon(object):
     }
     '''
 
-    def __init__(self, workdir, devlistfile):
+    def __init__(self, workdir):
         '''
         Constructor
         '''
         self.devlist = {}
-        self.devlist_file = os.path.join(workdir, devlistfile)
+        self.devlist_file = os.path.join(workdir, 'devlist.json')
         try:
             with open(self.devlist_file) as fp:
                 self.devlist = json.load(fp)
@@ -102,8 +102,7 @@ class DevMon(object):
         threads = []
         # ping all devices in different threads
         for devip in iplist:
-            t = threading.Thread(target=self.get_alive_status, args = (devip,))
-            t.daemon = True
+            t = threading.Thread(target=self._get_alive_status, args = (devip,))
             t.start()
             threads.append(t)
             
@@ -111,11 +110,12 @@ class DevMon(object):
         for t in threads:
             t.join(None)
         
+        print('[devmon] update dev status done')
         # return the ping results
         return self.results
     
     # called by each thread
-    def get_alive_status(self, devip):
+    def _get_alive_status(self, devip):
         alive = False
         try:
             alive = self.ping(devip)
@@ -133,14 +133,17 @@ class DevMon(object):
         Remember that some hosts may not respond to a ping request even if the host name is valid.
         """
         # Ping parameters as function of OS
-        parameters = "-n 1" if system_name().lower()=="windows" else "-c 1"
+        if system_name().lower()=="windows":
+            parameters = "-n 1"
+        else:
+            parameters = "-c 1"
     
         # Pinging
         return system_call("ping " + parameters + " " + host) == 0      
 
 #UT code
 if __name__ == '__main__':
-    dm = DevMon('D:/', 'devlist.json')
+    dm = DevMon('D:/')
     dm.updateDevStatus()
     print(dm.get_apStatus())
     print(dm.get_brStatus())
