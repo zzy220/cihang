@@ -79,6 +79,11 @@ class DevMon(object):
         return devstatus
        
     def updateDevStatus(self):
+        try:
+            system_call('rm ping_out.txt')
+        except Exception as e:
+            logging.error('[devmon] failed to rm ping_out.txt:'+ str(e))
+        
         # clear the status
         self.results.clear()
         
@@ -139,7 +144,7 @@ class DevMon(object):
             parameters = "-c 1"
     
         # Pinging
-        return system_call("ping " + parameters + " " + host) == 0      
+        return system_call("ping " + parameters + " " + host + " >> ping_out.txt") == 0      
 
 #UT code
 if __name__ == '__main__':

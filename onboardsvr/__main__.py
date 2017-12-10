@@ -66,7 +66,8 @@ def main():
     inchr = ''
     while True:
         print('enter h for help')
-        inchr = input("enter q to quit")
+        print('enter q for help')
+        inchr = input()
         if inchr == 'q':
             break
         elif inchr == 'h':
