@@ -55,7 +55,7 @@ class Scheduler(threading.Thread):
         This is the main loop the run the scheduler
         '''
         _reporter = reporter.Reporter(self.workdir, self.device_id)
-        _patcher = patcher.Patcher(self.workdir, self.patch_root)
+        _patcher = patcher.Patcher(self.workdir, self.patch_root, self.device_id)
     
         try:
             _reporter.do_report()
@@ -90,7 +90,13 @@ class Scheduler(threading.Thread):
         
 
 if __name__ == '__main__':
-    s = Scheduler("d:/Test", "d:/Test", 100, 100)
+    c = {
+        "patch_root":"/home/samuel",
+        "report_interval": 10,
+        "patch_interval":  100,
+        "device_id": 160
+        }
+    s = Scheduler("d:/Test", "d:/Test", c)
     s.startup()
     input('press q to quit')
     s.shutdown()

@@ -29,14 +29,17 @@ run.sh 脚本自动设置当前目录下的workdir为工作目录，
 2. 程序配置 config.json
 文件的格式为：
 {
-	"patch_root":"/",           # 补丁文件安装的根目录
-	"report_interval": 30,      # 设备信息的上报周期
-	"patch_interval":  60       # 下载安装补丁的周期
+	"patch_root":"/",   
+	"report_interval": 30,    
+	"patch_interval":  60,
+	"device_id": 160   
 }
 
-"patch_root":        # 补丁文件安装的根目录
-"report_interval":   # 设备信息的上报周期
-"patch_interval":    # 下载安装补丁的周期
+"patch_root":       补丁文件安装的根目录
+"report_interval":  设备信息的上报周期
+"patch_interval":   下载安装补丁的周期
+"device_id":        车载服务器的ID
+
 
 四、日志文件
 

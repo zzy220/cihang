@@ -21,10 +21,11 @@ class Patcher():
     The patcher is driving by the scheduler
     '''
 
-    def __init__(self, workdir, patchroot):
+    def __init__(self, workdir, patchroot, device_id):
         '''
         Constructor
         '''
+        self.device_id = device_id
         self.patchroot = patchroot
         self.workdir = workdir
         self.downloader = downloader.DownLoader()        
@@ -42,14 +43,21 @@ class Patcher():
         self._download_patchlist(patchlist_file)
         patchlist = self._parse_patchlist_json(patchlist_file)
         
-        patch_report = [];
-        '''
-        [
-        {"url":"https://server.chrail.cn/patch/2017/patch1.tar.gz","md5":"7cc1df8e7027b1243d77dd4f8f7159e7","status":0},
-        {"url":"https://server.chrail.cn/patch/2017/patch2.tar.gz","md5":"f88b3de4e2cc779d99de5ae0a887512f","status":1}
-        ]
-        '''
+        #just some code for UT
+        #patchlist=[{"url":"https://server.chrail.cn/patch/2017/patch1.tar.gz","md5":"7cc1df8e7027b1243d77dd4f8f7159e7","cmd0":"ls","cmd1":"ls"},
+        #           {"url":"https://server.chrail.cn/patch/2017/patch2.tar.gz","md5":"f88b3de4e2cc779d99de5ae0a887512f","cmd0":"ls","cmd1":"ls"}]
+        
+        patch_results = [];
         for p in patchlist:
+            
+            # if a valid patch line
+            if not 'md5'in p or\
+                not 'url' in p or\
+                not 'cmd0' in p or\
+                not 'cmd1' in p :
+                logging.error('[patcher]bad patch format:'+ str(p))
+                continue #next patch
+            
             if self.history.find_in_history(p['md5'])==False:
                 print('[patcher] now applying patch:')
                 print(p)
@@ -58,13 +66,13 @@ class Patcher():
                 if ret ==0:
                     hist_result =  [str(datetime.datetime.now()), p['md5'], p['url']];
                     self.history.add_to_history(hist_result)
-                patch_report.append({"url":p['url'], "md5":p['md5'], "status":ret});
+                patch_results.append({"url":p['url'], "md5":p['md5'], "status":ret});
             else:
                 print('[patcher] this patch already in the hostory list:')
                 print(p)
                     
-        if len(patch_report)>0:
-            self._send_patch_report(patch_report)
+        if len(patch_results)>0:
+            self._send_patch_report(patch_results)
 
     def _download_patchlist(self, patchlistfile):
         patchlist_url = "https://server.chrail.cn/patch/2017/list.json"
@@ -91,9 +99,37 @@ class Patcher():
             logging.error('failed to parse patch list file:'+ str(e))
         return patch_list
     
-    def _send_patch_report(self, patch_report): 
-        print(json.dumps(patch_report))
-        req = urllib.request.Request("https://server.chrail.cn/equipment!request.action")
+    def _send_patch_report(self, patch_results): 
+        '''
+        report format:
+        {
+            "method": "patchLog",
+            "params": {
+                "devid": 1,
+                "extInfo": [{
+                    "url": "https://server.chrail.cn/patch/2017/patch1.tar.gz",
+                    "md5": "7cc1df8e7027b1243d77dd4f8f7159e7",
+                    "status": "0"
+                }, {
+                    "url": "https://server.chrail.cn/patch/2017/patch2.tar.gz",
+                    "md5": "f88b3de4e2cc779d99de5ae0a887512f",
+                    "status": "1"
+                }]
+            }
+        }
+        '''
+        
+        patch_report = {}
+        params = {}
+        params["devid"]=self.device_id
+        params["extInfo"]=patch_results
+        patch_report["method"]="patchLog"
+        patch_report["params"]=params
+        
+        logging.info('[patcher]now sending patch results..')
+        logging.info(json.dumps(patch_report))
+
+        req = urllib.request.Request("httpS://server.chrail.cn/basedata!request.action")
         req.add_header('Accept', '*/*')  
         req.add_header("Access-Control-Allow-Origin", "*")
         json_data = json.dumps(patch_report)
@@ -112,15 +148,15 @@ class Patcher():
             #result = resp.read();
             result = bytes.decode("utf-8") 
         except Exception as e:
-            logging.error('report data failed:' + str(e))
-        print(result)
-        pass
+            logging.error('[patcher]report patch results failed:' + str(e))
+            
+        logging.info(result)
             
     
     def _calc_md5(self, filename):
         md5_returned = ''
         if os.path.exists(filename)==False:
-            logging.error('calc_md5 : file does not exist:'+filename)
+            logging.error('[patcher]calc_md5 : file does not exist:'+filename)
             return ''
         
         try:
@@ -131,7 +167,7 @@ class Patcher():
                 md5_returned = hashlib.md5(data).hexdigest()
         except Exception as e:
             print( e)
-            print('fail to calc md5')
+            print('[patcher]fail to calc md5')
             
         return md5_returned;    
 
@@ -142,7 +178,7 @@ class Patcher():
         try:
             r = os.system(cmd) == 0 # we assume the cmd return 0 on SUCCESS
         except Exception as e:
-            logging.error('failed to execute command0:'+ cmd)
+            logging.error('[patcher]failed to execute command0:'+ cmd)
             return False
         return r;
         
@@ -164,7 +200,7 @@ class Patcher():
             self.downloader.begin_download(p["url"], tmpfile)
             self.downloader.finish_download()
         except IOError as e:
-            logging.error('do_patch failed:'+e)
+            logging.error('[patcher]do_patch failed:'+e)
             return 1
         
         # do md5 check
@@ -178,19 +214,19 @@ class Patcher():
         
         # run pre command
         if self._run_cmd(p['cmd0'])==False:
-            logging.error('failed to execute command0:'+p['cmd0'])
+            logging.error('[patcher]failed to execute command0:'+p['cmd0'])
             return 3
                 
         # apply the patch file
         tardir = self.patchroot # to to root dir
         tarcmd = 'tar -C '+ tardir + ' -xvf ' + tmpfile
         if self._run_cmd(tarcmd)==False:
-            logging.error('failed to execute tar command:' + tarcmd)
+            logging.error('[patcher]failed to execute tar command:' + tarcmd)
             return 4    
         
         # run post command
         if self._run_cmd(p['cmd1'])==False:
-            logging.error('failed to execute command1:'+p['cmd1'])
+            logging.error('[patcher]failed to execute command1:'+p['cmd1'])
             return 5
         
         # finally, we've done
@@ -199,10 +235,10 @@ class Patcher():
 
 # some UT code
 if __name__=="__main__":
+    logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
 
-    u = Patcher("d:/Test", "d:/Test/out")
+    u = Patcher("/mnt/d/Test", "/mnt/d/Test/out", 159)
     u.do_patch()
-    
     
     fl = r'd:\dinner_1080p30_2m.mp4'
     #md5 = u._calc_md5(fl)
