@@ -1,5 +1,6 @@
 {
 	"patch_root":"/home/samuel",         
-	"report_interval": 3000,   
-	"patch_interval":  10     
+	"report_interval": 10,   
+	"patch_interval":  100,
+	"device_id": 160
 }

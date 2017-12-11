@@ -66,7 +66,7 @@ class DevMon(object):
         '''
         make the status result for specified device list
         spec_devlist :  [ { "name": "devName", "ip": "ip_addr1"  }, ... ]
-        return list [ {"dev1": 0}, ... ]
+        return list [ {"name":"dev1", "status":0}, ... ]
         '''
         devstatus = []
         for i in spec_devlist:
@@ -75,7 +75,7 @@ class DevMon(object):
                 stat = 0;
                 if self.results[i['ip']]:
                     stat = 1 
-                devstatus.append( {i['name']:stat} )
+                devstatus.append( {"name":i['name'], "status":stat} )
         return devstatus
        
     def updateDevStatus(self):

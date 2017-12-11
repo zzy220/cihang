@@ -19,20 +19,23 @@ from onboardsvr import patcher
 from builtins import str
            
 class Scheduler(threading.Thread):
-    def __init__(self, workdir, patch_root, report_interval, patcher_interval):
+    def __init__(self, workdir, config):
         '''
         Constructor
         workdir: work dir to put working files
         patch_root: the root path to apply patches
         report_interval : the interval to send device report (in seconds)
-        patcher_interval : the interval to run the patcher (in seconds)
+        patch_interval : the interval to run the patcher (in seconds)
         '''
         super(Scheduler, self).__init__()
 
-        self.report_interval = report_interval
-        self.patcher_interval = patcher_interval
+        # work dir
         self.workdir = workdir
-        self.patch_root =patch_root
+        # setup app config
+        self.report_interval = config["report_interval"]
+        self.patch_interval = config["patch_interval"]
+        self.patch_root = config["patch_root"]
+        self.device_id = config["device_id"]
         self.stop_flag=False; 
         
     def startup(self):
@@ -51,7 +54,7 @@ class Scheduler(threading.Thread):
         '''
         This is the main loop the run the scheduler
         '''
-        _reporter = reporter.Reporter(self.workdir)
+        _reporter = reporter.Reporter(self.workdir, self.device_id)
         _patcher = patcher.Patcher(self.workdir, self.patch_root)
     
         try:
@@ -75,7 +78,7 @@ class Scheduler(threading.Thread):
                 last_report_time = cur_time
                 
             # is it time to do patching..
-            if cur_time - last_patcher_time > self.patcher_interval:
+            if cur_time - last_patcher_time > self.patch_interval:
                 try:
                     _patcher.do_patch()
                 except Exception as e: # catch all exceptions to keep this thread alive

@@ -9,27 +9,37 @@ import psutil
 
 def get_onboardsvr_state():
     '''
-    return some system states, as a dictionary
-        其中stat0-stat3分别表示: CPU占用率,内存占用率,主磁盘占用率,辅磁盘占用率
+    return some system states, as an property array:
+    [
+     { "name": "cpuUsage", "status":10 },
+     { "name": "memUsage",  "status":20 },
+     { "name": "diskUsage",  "status":20 },
+     { "name": "disk2Usage",  "status":20 }
+    ]    
     '''
     
-    state = {}
+    state = []
     # print partition states
     #s = psutil.disk_partitions()
     #print(s)
     # cpu usage
-    s = psutil.cpu_times_percent()
-    state["stat0"] = 100 - s.idle; # total cpu usage
-    #print(s)
+    cpusta = psutil.cpu_times_percent()
+    state.append( { "name": "cpuUsage", "status": int(100 - cpusta.idle) } ) # total cpu usage
+
     # memory usage
-    s = psutil.virtual_memory()
-    state["stat1"] = s.percent # this is just the usage
-    #print(s)
+    memsta = psutil.virtual_memory()
+    state.append( { "name": "memUsage", "status": int(memsta.percent)} ) # this is just the mem usage
+
     # disk usage
-    s = psutil.disk_usage('/')
-    state["stat2"] = s.percent # this is just the usage
-    #print(s)
-    state["stat3"] = 0;
+    disksta = psutil.disk_usage('/')
+    state.append( { "name": "diskUsage", "status": int(disksta.percent)} ) # this is just the disk usage
+    
+    # disk2 usage
+    # to do: need to know the mountpoint of disk2
+    # s = psutil.disk_usage('/') 
+    state.append( { "name": "disk2Usage", "status": 0} ) # this is just the mem usage
+    
+    # return the list
     return state
 
 # some UT code

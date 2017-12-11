@@ -12,10 +12,10 @@ data format
     "id": 35,
     "extInfo": "",
     "text": "",
-    "rfidList": [ { "rfid": 0  },  { "rfid": 0 }  ],
-    "camList": [  { "cam": 0 }, {  "cam": 0 } ],
-    "apList": [  { "ap": 0  }, { "ap": 0  }  ],
-    "brList": [  {    "br": 0   },    { "br": 0  }   ],
+    "rfidList": [ { "name":"rfid1", "status":0  },  { "name":"rfid2", "status":1  } ],
+    "camList": [  { "name":"rfid1", "status":0  },  { "name":"rfid2", "status":1  } ],
+    "apList": [  { "name":"rfid1", "status":0  },  { "name":"rfid2", "status":1  }  ],
+    "brList": [  { "name":"rfid1", "status":0  },  { "name":"rfid2", "status":1  }  ],
     "objList": [  {  "stat0": "", "stat1": "", "stat2": 0, "stat3": ""  } ]
   }
 }
@@ -35,7 +35,7 @@ class Reporter(object):
     report the state of this onboard server and 
     states of various devices
     '''
-    def __init__(self, workdir):
+    def __init__(self, workdir, device_id):
         '''
         Constructor
         '''
@@ -46,9 +46,9 @@ class Reporter(object):
         self.params = {}
         
         #init param
-        self.params["id"]= 159
-        self.params["extInfo"]= "testinfo"
-        self.params["text"]= "test"
+        self.params["id"]= device_id
+        self.params["extInfo"]= ""
+        self.params["text"]= ""
         self.params["rfidList"]= []
         self.params["apList"]= []
         self.params["camList"]= []
@@ -63,10 +63,9 @@ class Reporter(object):
         self.devmon.updateDevStatus(); #execute ping util to check dev status
         
         # setup reports        
-        self.params["id"] = 159 #self.reportId
-        self.params["time"]=str(datetime.datetime.now())
-        self.params["extInfo"]= "testinfo"
-        self.params["text"]= "test"
+        #self.params["time"]=str(datetime.datetime.now())  # do not use time now
+        self.params["extInfo"]= ""
+        self.params["text"]= ""
         
         self.params["rfidList"]= self.devmon.get_rfidStatus()
         self.params["apList"]= self.devmon.get_apStatus()
@@ -126,17 +125,11 @@ class Reporter(object):
         just some fake data for testing
         '''
         self.params["id"] = 160 #self.reportId
-        self.params['time']=str(datetime.datetime.now())
         self.params["rfidList"].clear()
         self.params["apList"].clear()
         self.params["camList"].clear()
         self.params["brList"].clear()
         self.params["objList"].clear()        
-        self.params["rfidList"].append({"rfid1":0,})
-        self.params["apList"].append({"ap2":0,} )
-        self.params["camList"].append({"cam1":1})
-        self.params["brList"].append({"br1":0,})
-        self.params["objList"].append({"stat0":10 , "stat1":10 , "stat2":10 , "stat3":10})        
         self._send_report()    
     
         

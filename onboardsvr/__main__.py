@@ -30,7 +30,7 @@ def main():
             workdir = sys.argv[1]
         else:
             logging.error("main: wrong workdir:" + sys.argv[1])
-            return
+            return -1
     
     # setup logging
     logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
@@ -49,19 +49,30 @@ def main():
     # 读取配置文件   
     config_file = os.path.join(workdir, 'config.json')
     config = {}
-    config ["patch_root"] = workdir
-    config ["report_interval"] = 30
-    config ["patch_interval"] = 60    
     try:
         with open(config_file, 'rt') as histfile:
             config = json.load(histfile)
     except Exception as e:
         logging.error('failed to load config file:'+ str(e))
+    #if no config file， setup default values
+    if not "device_id" in config:
+        logging.info('[main]device_id is not set in config.json')
+        return -1
+    if not "patch_root" in config:
+        logging.info('[main]patch_root is not set in config.json')
+        return -1
+    if not "report_interval" in config:
+        logging.info('[main]report_interval is not set in config.json')
+        return -1
+    if not "patch_interval" in config:
+        logging.info('[main]patch_interval is not set in config.json')
+        return -1
         
-    logging.info('now kick off the scheduler.. ')
+    logging.info('[main]loaded config:' + str(config))    
+    logging.info('[main]now kick off the scheduler.. ')
     
     # start the scheduler
-    sched = scheduler.Scheduler(workdir, config ["patch_root"], config ["report_interval"], config ["patch_interval"])
+    sched = scheduler.Scheduler(workdir, config )
     sched.startup()
     inchr = ''
     while True:
@@ -77,8 +88,9 @@ def main():
     sched.shutdown()
     
     logging.info('good bye')
-    pass
+    return 0
 
 if __name__ == '__main__':
-    main()
+    r=main()
+    
     
