@@ -22,10 +22,11 @@ class PatchHistory():
         self.hist_file = os.path.join(self.workdir, 'patch_hist.json')
         #now read from a file
         try:
-            with open(self.hist_file, 'rt') as histfile:
-                self.hist_list = json.load(histfile)
+            if os.path.exists(self.hist_file):
+                with open(self.hist_file, 'rt') as histfile:
+                    self.hist_list = json.load(histfile)
         except Exception as e:
-            logging.error('failed to parse patch history file:'+ str(e))
+            logging.error('[patcher_hist]failed to parse patch history file:'+ str(e))
              
     def find_in_history(self, md5ofapatch):
         for x in self.hist_list:

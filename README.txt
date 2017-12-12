@@ -40,6 +40,11 @@ run.sh 脚本自动设置当前目录下的workdir为工作目录，
 "patch_interval":   下载安装补丁的周期
 "device_id":        车载服务器的ID
 
+3. patch_list.json
+这是从服务器下载的补丁列表文件
+
+4. patch_hist.json
+这是成功的补丁记录文件，最多保存最新的100条记录
 
 四、日志文件
 

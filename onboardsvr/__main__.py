@@ -76,8 +76,8 @@ def main():
     sched.startup()
     inchr = ''
     while True:
-        print('enter h for help')
-        print('enter q for help')
+        print('Enter h for help')
+        print('Enter q to exit')
         inchr = input()
         if inchr == 'q':
             break

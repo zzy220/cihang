@@ -80,7 +80,8 @@ class DevMon(object):
        
     def updateDevStatus(self):
         try:
-            system_call('rm ping_out.txt')
+            if os.path.exists("ping_out.txt"):
+                system_call('rm ping_out.txt')
         except Exception as e:
             logging.error('[devmon] failed to rm ping_out.txt:'+ str(e))
         
